@@ -1,4 +1,4 @@
-# Build a WordPress-ready plugin ZIP (no dev files, no agency-hub).
+# Build a WordPress-ready plugin ZIP (files only — no empty directory entries).
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
@@ -33,7 +33,33 @@ if (Test-Path $zipPath) {
 	Remove-Item $zipPath -Force
 }
 
-Compress-Archive -Path $staging -DestinationPath $zipPath -Force
+$python = @"
+import os
+import zipfile
 
-Write-Host "Created $zipPath"
+staging = r"$staging"
+zip_path = r"$zipPath"
+slug = "$slug"
+
+with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+    for dirpath, dirnames, filenames in os.walk(staging):
+        for filename in filenames:
+            full_path = os.path.join(dirpath, filename)
+            rel_path = os.path.relpath(full_path, staging).replace("\\\\", "/")
+            arcname = f"{slug}/{rel_path}"
+            zf.write(full_path, arcname)
+
+zero_byte = [i.filename for i in zipfile.ZipFile(zip_path).infolist() if i.file_size == 0]
+if zero_byte:
+    raise SystemExit("ZIP contains zero-byte entries: " + ", ".join(zero_byte))
+
+print(f"Created {zip_path}")
+"@
+
+$python | python -
+
+if ($LASTEXITCODE -ne 0) {
+	throw "Failed to build plugin ZIP."
+}
+
 Get-Item $zipPath | Select-Object FullName, Length
