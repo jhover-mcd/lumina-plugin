@@ -1,0 +1,8 @@
+<?php
+/**
+ * Copy to agency-hub-url.local.php for local development overrides.
+ * Do not ship this file to client sites.
+ */
+defined( 'ABSPATH' ) || exit;
+
+define( 'LUMINA_IG_AGENCY_HUB_URL', 'http://agency-hub' );

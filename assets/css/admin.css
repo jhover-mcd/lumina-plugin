@@ -1,0 +1,289 @@
+/* Lumina Instagram Feed — Admin Styles */
+
+.lumina-ig-admin__grid {
+	display: grid;
+	grid-template-columns: 1fr 320px;
+	gap: 24px;
+	margin-top: 20px;
+}
+
+.lumina-ig-panel {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 20px 24px;
+	margin-bottom: 20px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.lumina-ig-panel h2 {
+	margin-top: 0;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #f0f0f1;
+	font-size: 15px;
+}
+
+.lumina-ig-panel--compact h2 {
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #646970;
+}
+
+.lumina-ig-status-list {
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+}
+
+.lumina-ig-status-list li {
+	padding: 6px 0;
+	border-bottom: 1px solid #f0f0f1;
+	font-size: 13px;
+}
+
+.lumina-ig-code {
+	display: block;
+	padding: 10px 12px;
+	background: #f6f7f7;
+	border-radius: 4px;
+	margin: 8px 0 16px;
+	font-size: 12px;
+	word-break: break-all;
+}
+
+.lumina-ig-design-studio__layout {
+	display: grid;
+	grid-template-columns: 380px 1fr;
+	gap: 24px;
+	margin-top: 20px;
+}
+
+.lumina-ig-design-studio__controls {
+	max-height: calc(100vh - 120px);
+	overflow-y: auto;
+	padding-right: 8px;
+}
+
+.lumina-ig-field {
+	margin-bottom: 14px;
+}
+
+.lumina-ig-field label {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 500;
+	font-size: 13px;
+}
+
+.lumina-ig-field select,
+.lumina-ig-field input[type="text"],
+.lumina-ig-field input[type="number"],
+.lumina-ig-field textarea {
+	width: 100%;
+	max-width: 100%;
+}
+
+.lumina-ig-live-preview {
+	min-height: 300px;
+	padding: 20px;
+	background: #f9fafb;
+	border-radius: 8px;
+	border: 1px dashed #c3c4c7;
+}
+
+.lumina-ig-live-preview__placeholder {
+	color: #646970;
+	text-align: center;
+	padding: 60px 20px;
+}
+
+.lumina-ig-design-studio .submit {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.lumina-ig-curate__toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.lumina-ig-curate__toolbar-copy p {
+	margin: 6px 0 0;
+}
+
+.lumina-ig-curate__empty {
+	text-align: center;
+	padding: 48px 24px;
+	color: #646970;
+}
+
+.lumina-ig-curate__selected-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 8px 16px;
+	margin-bottom: 16px;
+}
+
+.lumina-ig-curate__selected-head h2 {
+	margin: 0;
+}
+
+.lumina-ig-curate__selected-head .description {
+	margin: 0;
+	flex: 1 1 100%;
+}
+
+.lumina-ig-curate__count {
+	margin: 0;
+	font-weight: 600;
+	color: #e1306c;
+}
+
+.lumina-ig-curate__selected-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	min-height: 84px;
+}
+
+.lumina-ig-curate__selected-item {
+	position: relative;
+	width: 84px;
+	border-radius: 8px;
+	overflow: hidden;
+	border: 2px solid #e1306c;
+	background: #fff;
+}
+
+.lumina-ig-curate__selected-item img {
+	display: block;
+	width: 84px;
+	height: 84px;
+	object-fit: cover;
+}
+
+.lumina-ig-curate__drag {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 28px;
+	z-index: 2;
+	font-size: 10px;
+	line-height: 28px;
+	text-align: center;
+	color: #fff;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent);
+	cursor: grab;
+	user-select: none;
+}
+
+.lumina-ig-curate__drag:active {
+	cursor: grabbing;
+}
+
+.lumina-ig-curate__remove {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	width: 22px;
+	height: 22px;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.65);
+	color: #fff;
+	font-size: 16px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.lumina-ig-curate__selected-empty {
+	margin: 0;
+	color: #646970;
+	font-style: italic;
+}
+
+.lumina-ig-curate__selected-placeholder {
+	width: 84px;
+	height: 84px;
+	border: 2px dashed #c3c4c7;
+	border-radius: 8px;
+	background: #f6f7f7;
+}
+
+.lumina-ig-curate__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 12px;
+}
+
+.lumina-ig-curate__photo {
+	position: relative;
+	display: block;
+	width: 100%;
+	padding: 0;
+	border: 2px solid transparent;
+	border-radius: 10px;
+	overflow: hidden;
+	cursor: pointer;
+	background: #f6f7f7;
+	transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.lumina-ig-curate__photo:hover {
+	transform: translateY(-2px);
+	border-color: #dcdcde;
+}
+
+.lumina-ig-curate__photo.is-selected {
+	border-color: #e1306c;
+	box-shadow: 0 0 0 2px rgba(225, 48, 108, 0.15);
+}
+
+.lumina-ig-curate__photo img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 1 / 1;
+	object-fit: cover;
+}
+
+.lumina-ig-curate__check {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background: #e1306c;
+	color: #fff;
+	display: grid;
+	place-items: center;
+	font-size: 14px;
+	opacity: 0;
+	transform: scale(0.8);
+	transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.lumina-ig-curate__photo.is-selected .lumina-ig-curate__check {
+	opacity: 1;
+	transform: scale(1);
+}
+
+@media (max-width: 1200px) {
+	.lumina-ig-admin__grid,
+	.lumina-ig-design-studio__layout {
+		grid-template-columns: 1fr;
+	}
+
+	.lumina-ig-design-studio__controls {
+		max-height: none;
+	}
+}

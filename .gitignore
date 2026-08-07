@@ -1,0 +1,20 @@
+# Local dev overrides
+agency-hub-url.local.php
+
+# Agency hub (hosted separately — see lumina-agency-hub repo)
+/agency-hub/
+
+# PHP dev dependencies
+/vendor/
+composer.lock
+
+# Build output
+/dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+node_modules/
