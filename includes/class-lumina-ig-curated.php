@@ -16,6 +16,8 @@ class Lumina_IG_Curated {
 	const SELECTION_OPTION = 'lumina_ig_curated_selection';
 	const META_OPTION      = 'lumina_ig_curated_meta';
 
+	const URL_EXPIRATION_DAYS = 5;
+
 	/**
 	 * Settings handler.
 	 *
@@ -98,9 +100,11 @@ class Lumina_IG_Curated {
 			return $result;
 		}
 
-		$library = $this->get_library();
+		$items      = isset( $result['items'] ) ? $result['items'] : $result;
+		$fetched_at = isset( $result['fetched_at'] ) ? $result['fetched_at'] : time();
+		$library    = $this->get_library();
 
-		foreach ( $result as $item ) {
+		foreach ( $items as $item ) {
 			$id = isset( $item['id'] ) ? (string) $item['id'] : '';
 
 			if ( '' === $id ) {
@@ -116,6 +120,7 @@ class Lumina_IG_Curated {
 		$this->update_meta(
 			array(
 				'last_sync'  => current_time( 'mysql' ),
+				'fetched_at' => $fetched_at,
 				'item_count' => count( $library ),
 				'status'     => 'ok',
 				'last_error' => '',
@@ -169,10 +174,97 @@ class Lumina_IG_Curated {
 			is_array( $meta ) ? $meta : array(),
 			array(
 				'last_sync'  => '',
+				'fetched_at' => 0,
 				'item_count' => 0,
 				'status'     => 'unknown',
 				'last_error' => '',
 			)
+		);
+	}
+
+	/**
+	 * Check if Instagram URLs need refreshing.
+	 *
+	 * @return bool
+	 */
+	public function urls_need_refresh() {
+		$meta       = $this->get_meta();
+		$fetched_at = isset( $meta['fetched_at'] ) ? absint( $meta['fetched_at'] ) : 0;
+
+		if ( 0 === $fetched_at ) {
+			return false;
+		}
+
+		$age_days = ( time() - $fetched_at ) / DAY_IN_SECONDS;
+
+		return $age_days > self::URL_EXPIRATION_DAYS;
+	}
+
+	/**
+	 * Get URL age in days.
+	 *
+	 * @return float
+	 */
+	public function get_url_age_days() {
+		$meta       = $this->get_meta();
+		$fetched_at = isset( $meta['fetched_at'] ) ? absint( $meta['fetched_at'] ) : 0;
+
+		if ( 0 === $fetched_at ) {
+			return 0;
+		}
+
+		return ( time() - $fetched_at ) / DAY_IN_SECONDS;
+	}
+
+	/**
+	 * Refresh Instagram media URLs without changing the photo library or selection.
+	 *
+	 * @param int|null $limit Optional override for import count.
+	 * @return array|WP_Error Array with count of updated posts or WP_Error.
+	 */
+	public function refresh_urls( $limit = null ) {
+		if ( null === $limit ) {
+			$limit = absint( $this->settings->get( 'curated_fetch_limit', 50 ) );
+		}
+
+		$limit  = min( 50, max( 1, absint( $limit ) ) );
+		$result = $this->api->refresh_media( $limit );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$fresh_items = isset( $result['items'] ) ? $result['items'] : $result;
+		$fetched_at  = isset( $result['fetched_at'] ) ? $result['fetched_at'] : time();
+		$library     = $this->get_library();
+		$updated     = 0;
+
+		foreach ( $fresh_items as $fresh_item ) {
+			$id = isset( $fresh_item['id'] ) ? (string) $fresh_item['id'] : '';
+
+			if ( '' === $id || ! isset( $library[ $id ] ) ) {
+				continue;
+			}
+
+			$library[ $id ]['image_url'] = $fresh_item['image_url'];
+			$library[ $id ]['permalink'] = $fresh_item['permalink'];
+			$updated++;
+		}
+
+		if ( $updated > 0 ) {
+			update_option( self::LIBRARY_OPTION, $library, false );
+		}
+
+		$this->update_meta(
+			array(
+				'fetched_at'    => $fetched_at,
+				'last_url_sync' => current_time( 'mysql' ),
+			)
+		);
+
+		return array(
+			'updated'    => $updated,
+			'fetched_at' => $fetched_at,
 		);
 	}
 
@@ -223,6 +315,21 @@ class Lumina_IG_Curated {
 	 * @return array|WP_Error
 	 */
 	public function get_display_feed( $limit = 12 ) {
+		// Auto-refresh URLs if they're getting stale
+		if ( $this->urls_need_refresh() ) {
+			$refresh_result = $this->refresh_urls();
+
+			if ( ! is_wp_error( $refresh_result ) && isset( $refresh_result['updated'] ) ) {
+				error_log(
+					sprintf(
+						'Lumina Instagram Feed: Auto-refreshed %d post URLs (age was %.1f days)',
+						$refresh_result['updated'],
+						$this->get_url_age_days()
+					)
+				);
+			}
+		}
+
 		$library   = $this->get_library();
 		$selected  = $this->get_selected_ids();
 		$limit     = min( 50, max( 1, absint( $limit ) ) );

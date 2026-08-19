@@ -60,7 +60,53 @@ class Lumina_IG_Api {
 			);
 		}
 
-		return $this->normalize_items( $body['items'] );
+		$response = array(
+			'items'      => $this->normalize_items( $body['items'] ),
+			'fetched_at' => isset( $body['fetched_at'] ) ? absint( $body['fetched_at'] ) : time(),
+		);
+
+		return $response;
+	}
+
+	/**
+	 * Force-refresh media URLs from the agency hub.
+	 *
+	 * @param int $limit Number of posts to fetch.
+	 * @return array|WP_Error Normalized media items with fresh URLs or error.
+	 */
+	public function refresh_media( $limit = 12 ) {
+		if ( ! $this->settings->is_configured() ) {
+			return new WP_Error(
+				'lumina_ig_not_configured',
+				__( 'Please enter a license key.', 'lumina-instagram-feed' )
+			);
+		}
+
+		$body = $this->request_hub(
+			'refresh',
+			array(
+				'limit' => min( 50, max( 1, absint( $limit ) ) ),
+			)
+		);
+
+		if ( is_wp_error( $body ) ) {
+			return $body;
+		}
+
+		if ( empty( $body['items'] ) || ! is_array( $body['items'] ) ) {
+			return new WP_Error(
+				'lumina_ig_empty',
+				$body['message'] ?? __( 'No Instagram posts were returned.', 'lumina-instagram-feed' )
+			);
+		}
+
+		$response = array(
+			'items'      => $this->normalize_items( $body['items'] ),
+			'fetched_at' => isset( $body['fetched_at'] ) ? absint( $body['fetched_at'] ) : time(),
+			'refreshed'  => ! empty( $body['refreshed'] ),
+		);
+
+		return $response;
 	}
 
 	/**
