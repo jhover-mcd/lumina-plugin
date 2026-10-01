@@ -203,6 +203,17 @@
 	font-size: 16px;
 	line-height: 1;
 	cursor: pointer;
+	z-index: 3;
+	transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.lumina-ig-curate__remove:hover {
+	background: rgba(225, 48, 108, 0.9);
+	transform: scale(1.1);
+}
+
+.lumina-ig-curate__remove:active {
+	transform: scale(0.95);
 }
 
 .lumina-ig-curate__selected-empty {

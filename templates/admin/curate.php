@@ -24,7 +24,7 @@ usort(
 ?>
 <div class="wrap lumina-ig-admin lumina-ig-curate">
 	<h1><?php esc_html_e( 'Curate Feed', 'lumina-instagram-feed' ); ?></h1>
-	<p class="description"><?php esc_html_e( 'Import Instagram posts into your site, pick the ones you want, and control the order. Image URLs refresh automatically once a week while your selection stays the same.', 'lumina-instagram-feed' ); ?></p>
+	<p class="description"><?php esc_html_e( 'Import Instagram posts into your site, pick the ones you want, and control the order. Image URLs refresh automatically every 5 days to prevent broken images.', 'lumina-instagram-feed' ); ?></p>
 
 	<?php if ( ! $is_curated ) : ?>
 		<div class="notice notice-warning">
@@ -39,10 +39,50 @@ usort(
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Instagram posts imported into your photo library.', 'lumina-instagram-feed' ); ?></p></div>
 	<?php elseif ( 'library_sync_failed' === $notice ) : ?>
 		<div class="notice notice-error is-dismissible"><p><?php echo esc_html( get_transient( 'lumina_ig_library_error' ) ?: __( 'Import failed.', 'lumina-instagram-feed' ) ); ?></p></div>
+	<?php elseif ( 'urls_refreshed' === $notice ) : ?>
+		<?php $count = get_transient( 'lumina_ig_url_refresh_count' ); ?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<?php
+				if ( $count ) {
+					printf(
+						/* translators: %d: number of posts updated */
+						esc_html__( '✓ Instagram media URLs refreshed for %d posts. Images will stay fresh for another week.', 'lumina-instagram-feed' ),
+						(int) $count
+					);
+				} else {
+					esc_html_e( '✓ Instagram media URLs refreshed.', 'lumina-instagram-feed' );
+				}
+				?>
+			</p>
+		</div>
+	<?php elseif ( 'url_refresh_failed' === $notice ) : ?>
+		<div class="notice notice-error is-dismissible"><p><?php echo esc_html( get_transient( 'lumina_ig_url_refresh_error' ) ?: __( 'URL refresh failed.', 'lumina-instagram-feed' ) ); ?></p></div>
 	<?php elseif ( 'curated_saved' === $notice ) : ?>
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Curated feed selection saved.', 'lumina-instagram-feed' ); ?></p></div>
 	<?php elseif ( 'curated_mode_required' === $notice ) : ?>
 		<div class="notice notice-warning is-dismissible"><p><?php esc_html_e( 'Enable Curated Feed mode on Settings before saving a selection.', 'lumina-instagram-feed' ); ?></p></div>
+	<?php endif; ?>
+
+	<?php
+	// Check URL age
+	$url_age_days = lumina_ig()->curated->get_url_age_days();
+	$urls_stale   = $url_age_days > Lumina_IG_Curated::URL_EXPIRATION_DAYS;
+	?>
+
+	<?php if ( $urls_stale && ! empty( $library ) ) : ?>
+		<div class="notice notice-warning">
+			<p>
+				<strong><?php esc_html_e( 'Instagram media URLs need refreshing', 'lumina-instagram-feed' ); ?></strong><br />
+				<?php
+				printf(
+					/* translators: %.1f: number of days */
+					esc_html__( 'Image URLs are %.1f days old and may break soon. Instagram CDN URLs expire after ~7 days. Click "Refresh Image URLs" below to get fresh URLs without changing your selection.', 'lumina-instagram-feed' ),
+					$url_age_days
+				);
+				?>
+			</p>
+		</div>
 	<?php endif; ?>
 
 	<div class="lumina-ig-curate__toolbar lumina-ig-panel">
@@ -62,6 +102,21 @@ usort(
 			<?php if ( ! empty( $meta['last_sync'] ) ) : ?>
 				<p class="description"><?php printf( esc_html__( 'Last import: %s', 'lumina-instagram-feed' ), esc_html( $meta['last_sync'] ) ); ?></p>
 			<?php endif; ?>
+			<?php if ( $url_age_days > 0 ) : ?>
+				<p class="description">
+					<?php
+					$status_emoji = $urls_stale ? '⚠️' : '✓';
+					$status_text  = $urls_stale ? esc_html__( 'Old', 'lumina-instagram-feed' ) : esc_html__( 'Fresh', 'lumina-instagram-feed' );
+					printf(
+						/* translators: 1: status emoji 2: status text 3: age in days */
+						esc_html__( 'Image URLs: %1$s %2$s (%.1f days old)', 'lumina-instagram-feed' ),
+						$status_emoji,
+						$status_text,
+						$url_age_days
+					);
+					?>
+				</p>
+			<?php endif; ?>
 			<?php
 			$next_import = wp_next_scheduled( Lumina_IG_Cron::CURATED_HOOK );
 			if ( $next_import ) :
@@ -69,13 +124,24 @@ usort(
 				<p class="description"><?php printf( esc_html__( 'Next auto-import: %s', 'lumina-instagram-feed' ), esc_html( date_i18n( 'Y-m-d H:i:s', $next_import ) ) ); ?></p>
 			<?php endif; ?>
 		</div>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<?php wp_nonce_field( 'lumina_ig_sync_library' ); ?>
-			<input type="hidden" name="action" value="lumina_ig_sync_library" />
-			<button type="submit" class="button button-secondary" <?php disabled( ! $is_curated ); ?>>
-				<?php esc_html_e( 'Import from Instagram', 'lumina-instagram-feed' ); ?>
-			</button>
-		</form>
+		<div style="display: flex; gap: 8px; flex-direction: column;">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( 'lumina_ig_sync_library' ); ?>
+				<input type="hidden" name="action" value="lumina_ig_sync_library" />
+				<button type="submit" class="button button-secondary" <?php disabled( ! $is_curated ); ?>>
+					<?php esc_html_e( 'Import from Instagram', 'lumina-instagram-feed' ); ?>
+				</button>
+			</form>
+			<?php if ( ! empty( $library ) ) : ?>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( 'lumina_ig_refresh_urls' ); ?>
+					<input type="hidden" name="action" value="lumina_ig_refresh_urls" />
+					<button type="submit" class="button button-secondary" <?php disabled( ! $is_curated ); ?> title="<?php esc_attr_e( 'Get fresh image URLs from Instagram without changing your selection', 'lumina-instagram-feed' ); ?>">
+						<?php esc_html_e( 'Refresh Image URLs', 'lumina-instagram-feed' ); ?>
+					</button>
+				</form>
+			<?php endif; ?>
+		</div>
 	</div>
 
 	<?php if ( empty( $library ) ) : ?>
