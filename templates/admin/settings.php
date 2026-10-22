@@ -147,7 +147,7 @@ $option_key = Lumina_IG_Settings::OPTION_KEY;
 									<?php endforeach; ?>
 								</select>
 								<p class="description lumina-ig-live-only"><?php esc_html_e( 'Feeds are also refreshed automatically every hour via WP-Cron.', 'lumina-instagram-feed' ); ?></p>
-								<p class="description lumina-ig-curated-only"><?php esc_html_e( 'Curated feeds refresh image URLs automatically once a week via WP-Cron. Your selected photos stay the same.', 'lumina-instagram-feed' ); ?></p>
+								<p class="description lumina-ig-curated-only"><?php esc_html_e( 'Curated feeds refresh image URLs automatically every 3 days via WP-Cron. Your selected photos stay the same.', 'lumina-instagram-feed' ); ?></p>
 							</td>
 						</tr>
 					</table>

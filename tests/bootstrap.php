@@ -112,23 +112,33 @@ function is_wp_error( $thing ) {
 	return $thing instanceof WP_Error;
 }
 
-$GLOBALS['lumina_test_cron'] = array();
+$GLOBALS['lumina_test_cron']          = array();
+$GLOBALS['lumina_test_cron_schedule'] = array();
 
 function wp_next_scheduled( $hook ) {
 	return $GLOBALS['lumina_test_cron'][ $hook ] ?? false;
 }
 
+function wp_get_schedule( $hook ) {
+	return $GLOBALS['lumina_test_cron_schedule'][ $hook ] ?? false;
+}
+
 function wp_schedule_event( $timestamp, $recurrence, $hook ) {
-	$GLOBALS['lumina_test_cron'][ $hook ] = $timestamp;
+	$GLOBALS['lumina_test_cron'][ $hook ]          = $timestamp;
+	$GLOBALS['lumina_test_cron_schedule'][ $hook ] = $recurrence;
 	return true;
 }
 
 function wp_unschedule_event( $timestamp, $hook ) {
-	unset( $GLOBALS['lumina_test_cron'][ $hook ] );
+	unset( $GLOBALS['lumina_test_cron'][ $hook ], $GLOBALS['lumina_test_cron_schedule'][ $hook ] );
 	return true;
 }
 
 function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
+	return true;
+}
+
+function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 	return true;
 }
 

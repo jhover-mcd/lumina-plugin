@@ -66,11 +66,49 @@ class CronCuratedImportTest extends TestCase {
 		$this->assertFalse( $api->called );
 	}
 
-	public function test_ensure_scheduled_registers_weekly_hook() {
-		$GLOBALS['lumina_test_cron'] = array();
+	public function test_ensure_scheduled_registers_three_day_hook() {
+		$GLOBALS['lumina_test_cron']          = array();
+		$GLOBALS['lumina_test_cron_schedule'] = array();
 		Lumina_IG_Cron::ensure_scheduled();
 
 		$this->assertNotFalse( wp_next_scheduled( Lumina_IG_Cron::CURATED_HOOK ) );
+		$this->assertSame( Lumina_IG_Cron::CURATED_SCHEDULE, wp_get_schedule( Lumina_IG_Cron::CURATED_HOOK ) );
 		$this->assertNotFalse( wp_next_scheduled( Lumina_IG_Cron::HOOK ) );
+	}
+
+	public function test_ensure_scheduled_replaces_weekly_curated_import() {
+		$GLOBALS['lumina_test_cron'] = array(
+			Lumina_IG_Cron::CURATED_HOOK => time() + 604800,
+		);
+		$GLOBALS['lumina_test_cron_schedule'] = array(
+			Lumina_IG_Cron::CURATED_HOOK => 'weekly',
+		);
+
+		Lumina_IG_Cron::ensure_scheduled();
+
+		$this->assertSame( Lumina_IG_Cron::CURATED_SCHEDULE, wp_get_schedule( Lumina_IG_Cron::CURATED_HOOK ) );
+		$this->assertLessThanOrEqual( time(), wp_next_scheduled( Lumina_IG_Cron::CURATED_HOOK ) );
+	}
+
+	public function test_ensure_scheduled_keeps_existing_three_day_event() {
+		$due = time() + 1000;
+		$GLOBALS['lumina_test_cron'] = array(
+			Lumina_IG_Cron::HOOK         => time() + 3600,
+			Lumina_IG_Cron::CURATED_HOOK => $due,
+		);
+		$GLOBALS['lumina_test_cron_schedule'] = array(
+			Lumina_IG_Cron::HOOK         => 'hourly',
+			Lumina_IG_Cron::CURATED_HOOK => Lumina_IG_Cron::CURATED_SCHEDULE,
+		);
+
+		Lumina_IG_Cron::ensure_scheduled();
+
+		$this->assertSame( $due, wp_next_scheduled( Lumina_IG_Cron::CURATED_HOOK ) );
+	}
+
+	public function test_curated_schedule_is_three_days() {
+		$schedules = Lumina_IG_Cron::add_schedules( array() );
+
+		$this->assertSame( 259200, $schedules[ Lumina_IG_Cron::CURATED_SCHEDULE ]['interval'] );
 	}
 }

@@ -24,7 +24,7 @@ usort(
 ?>
 <div class="wrap lumina-ig-admin lumina-ig-curate">
 	<h1><?php esc_html_e( 'Curate Feed', 'lumina-instagram-feed' ); ?></h1>
-	<p class="description"><?php esc_html_e( 'Import Instagram posts into your site, pick the ones you want, and control the order. Image URLs refresh automatically once a week while your selection stays the same.', 'lumina-instagram-feed' ); ?></p>
+	<p class="description"><?php esc_html_e( 'Import Instagram posts into your site, pick the ones you want, and control the order. Image URLs refresh automatically every 3 days while your selection stays the same.', 'lumina-instagram-feed' ); ?></p>
 
 	<?php if ( ! $is_curated ) : ?>
 		<div class="notice notice-warning">

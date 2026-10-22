@@ -39,7 +39,7 @@ define( 'LUMINA_IG_LICENSE_KEY', 'your-site-license-key' );
 - Live and curated feed modes
 - Design Studio (layouts, colors, typography)
 - Shortcode `[lumina_instagram]` and Gutenberg block
-- Hourly cache refresh (live mode) and weekly library refresh (curated mode)
+- Hourly cache refresh (live mode) and a 3-day library refresh (curated mode)
 
 ## Development
 
