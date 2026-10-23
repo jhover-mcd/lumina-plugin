@@ -3,7 +3,7 @@
  * Plugin Name:       Lumina Instagram Feed
  * Plugin URI:        https://github.com/jhover-mcd/lumina-plugin
  * Description:       A fully customizable Instagram feed with a powerful design engine, hourly API caching, and flexible field controls.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Lumina
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'LUMINA_IG_VERSION', '1.0.0' );
+define( 'LUMINA_IG_VERSION', '1.1.0' );
 define( 'LUMINA_IG_PLUGIN_FILE', __FILE__ );
 define( 'LUMINA_IG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'LUMINA_IG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -42,6 +42,12 @@ if ( ! defined( 'LUMINA_IG_AGENCY_HUB_URL' ) ) {
 
 require_once LUMINA_IG_PLUGIN_DIR . 'includes/class-lumina-ig-autoloader.php';
 Lumina_IG_Autoloader::register();
+
+// Initialize GitHub updater for automatic updates
+if ( is_admin() ) {
+	require_once LUMINA_IG_PLUGIN_DIR . 'includes/class-lumina-ig-github-updater.php';
+	new Lumina_IG_GitHub_Updater( __FILE__ );
+}
 
 /**
  * Returns the main plugin instance.
