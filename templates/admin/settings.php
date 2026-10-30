@@ -192,6 +192,37 @@ $option_key = Lumina_IG_Settings::OPTION_KEY;
 
 			<div class="lumina-ig-panel">
 				<h2><?php esc_html_e( 'Test Connection', 'lumina-instagram-feed' ); ?></h2>
+				<?php
+				$token_health = lumina_ig()->api->get_token_health();
+				$token_status = (string) ( $token_health['status'] ?? '' );
+				if ( $token_status ) :
+					?>
+					<ul class="lumina-ig-status-list">
+						<li>
+							<strong><?php esc_html_e( 'Instagram token:', 'lumina-instagram-feed' ); ?></strong>
+							<?php
+							if ( 'ok' === $token_status && null !== $token_health['days_remaining'] ) {
+								printf(
+									/* translators: %d: days remaining */
+									esc_html__( 'Active, auto-renews (%d days left)', 'lumina-instagram-feed' ),
+									(int) $token_health['days_remaining']
+								);
+							} elseif ( 'expiring' === $token_status ) {
+								esc_html_e( 'Expiring soon. The hub will try to renew it automatically.', 'lumina-instagram-feed' );
+							} elseif ( 'expired' === $token_status ) {
+								esc_html_e( 'Expired. Ask your agency to reconnect Instagram.', 'lumina-instagram-feed' );
+							} elseif ( 'error' === $token_status ) {
+								esc_html_e( 'Renewal failed. Ask your agency to reconnect Instagram.', 'lumina-instagram-feed' );
+							} else {
+								echo esc_html( ucfirst( $token_status ) );
+							}
+							?>
+						</li>
+						<?php if ( ! empty( $token_health['checked_at'] ) ) : ?>
+							<li><strong><?php esc_html_e( 'Last checked:', 'lumina-instagram-feed' ); ?></strong> <?php echo esc_html( $token_health['checked_at'] ); ?></li>
+						<?php endif; ?>
+					</ul>
+				<?php endif; ?>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<?php wp_nonce_field( 'lumina_ig_test_connection' ); ?>
 					<input type="hidden" name="action" value="lumina_ig_test_connection" />

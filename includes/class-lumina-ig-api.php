@@ -129,9 +129,31 @@ class Lumina_IG_Api {
 		}
 
 		return array(
-			'user_id'      => $body['user_id'] ?? '',
-			'label'        => $body['label'] ?? '',
-			'media_count'  => $body['media_count'] ?? 0,
+			'user_id'              => $body['user_id'] ?? '',
+			'label'                => $body['label'] ?? '',
+			'media_count'          => $body['media_count'] ?? 0,
+			'token_status'         => $body['token_status'] ?? '',
+			'token_expires_at'     => $body['token_expires_at'] ?? '',
+			'token_days_remaining' => $body['token_days_remaining'] ?? null,
+		);
+	}
+
+	/**
+	 * Stored Instagram token health from the last successful hub response.
+	 *
+	 * @return array
+	 */
+	public function get_token_health() {
+		$stored = get_option( 'lumina_ig_token_health', array() );
+
+		return wp_parse_args(
+			is_array( $stored ) ? $stored : array(),
+			array(
+				'status'         => '',
+				'expires_at'     => '',
+				'days_remaining' => null,
+				'checked_at'     => '',
+			)
 		);
 	}
 
@@ -172,6 +194,8 @@ class Lumina_IG_Api {
 			);
 		}
 
+		$this->remember_token_health( $body );
+
 		if ( $code < 200 || $code >= 300 ) {
 			$message = $body['message'] ?? $body['error'] ?? __( 'Agency feed service request failed.', 'lumina-instagram-feed' );
 
@@ -179,6 +203,30 @@ class Lumina_IG_Api {
 		}
 
 		return $body;
+	}
+
+	/**
+	 * Persist token expiry details returned by the hub.
+	 *
+	 * @param array $body Hub response body.
+	 */
+	private function remember_token_health( $body ) {
+		if ( empty( $body['token_status'] ) ) {
+			return;
+		}
+
+		update_option(
+			'lumina_ig_token_health',
+			array(
+				'status'         => sanitize_text_field( (string) $body['token_status'] ),
+				'expires_at'     => sanitize_text_field( (string) ( $body['token_expires_at'] ?? '' ) ),
+				'days_remaining' => isset( $body['token_days_remaining'] ) && null !== $body['token_days_remaining']
+					? (int) $body['token_days_remaining']
+					: null,
+				'checked_at'     => current_time( 'mysql' ),
+			),
+			false
+		);
 	}
 
 	/**
