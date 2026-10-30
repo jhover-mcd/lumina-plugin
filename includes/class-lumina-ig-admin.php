@@ -50,6 +50,7 @@ class Lumina_IG_Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'admin_post_lumina_ig_refresh_cache', array( $this, 'handle_refresh' ) );
 		add_action( 'admin_post_lumina_ig_sync_library', array( $this, 'handle_sync_library' ) );
+		add_action( 'admin_post_lumina_ig_refresh_urls', array( $this, 'handle_refresh_urls' ) );
 		add_action( 'admin_post_lumina_ig_save_curated', array( $this, 'handle_save_curated' ) );
 		add_action( 'admin_post_lumina_ig_test_connection', array( $this, 'handle_test_connection' ) );
 		add_action( 'wp_ajax_lumina_ig_preview', array( $this, 'ajax_preview' ) );
@@ -256,6 +257,37 @@ class Lumina_IG_Admin {
 
 		if ( is_wp_error( $result ) ) {
 			set_transient( 'lumina_ig_library_error', $result->get_error_message(), 60 );
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'          => 'lumina-instagram-curate',
+					'lumina_notice' => $notice,
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Refresh Instagram media URLs without changing the library or selection.
+	 */
+	public function handle_refresh_urls() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Unauthorized', 'lumina-instagram-feed' ) );
+		}
+
+		check_admin_referer( 'lumina_ig_refresh_urls' );
+
+		$result = lumina_ig()->curated->refresh_urls();
+		$notice = is_wp_error( $result ) ? 'url_refresh_failed' : 'urls_refreshed';
+
+		if ( is_wp_error( $result ) ) {
+			set_transient( 'lumina_ig_url_refresh_error', $result->get_error_message(), 60 );
+		} elseif ( isset( $result['updated'] ) ) {
+			set_transient( 'lumina_ig_url_refresh_count', $result['updated'], 60 );
 		}
 
 		wp_safe_redirect(

@@ -79,22 +79,28 @@ class Lumina_IG_Cache {
 			return $result;
 		}
 
+		// Handle new API response format with 'items' and 'fetched_at'
+		$items      = isset( $result['items'] ) ? $result['items'] : $result;
+		$fetched_at = isset( $result['fetched_at'] ) ? $result['fetched_at'] : time();
+		
 		$ttl = absint( $settings->get( 'cache_ttl', LUMINA_IG_CACHE_TTL ) );
 		$key = $this->get_cache_key( $limit );
 
-		set_transient( $key, $result, $ttl );
+		// Cache just the items array for backward compatibility
+		set_transient( $key, $items, $ttl );
 
 		$this->update_meta(
 			array(
 				'last_refresh' => current_time( 'mysql' ),
 				'next_refresh' => date_i18n( 'Y-m-d H:i:s', time() + $ttl ),
-				'item_count'   => count( $result ),
+				'fetched_at'   => $fetched_at,
+				'item_count'   => count( $items ),
 				'status'       => 'ok',
 				'last_error'   => '',
 			)
 		);
 
-		return $result;
+		return $items;
 	}
 
 	/**
@@ -127,6 +133,7 @@ class Lumina_IG_Cache {
 			array(
 				'last_refresh' => '',
 				'next_refresh' => '',
+				'fetched_at'   => 0,
 				'item_count'   => 0,
 				'status'       => 'unknown',
 				'last_error'   => '',
